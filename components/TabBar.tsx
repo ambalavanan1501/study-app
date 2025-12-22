@@ -27,7 +27,7 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
             <View style={[styles.bar, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
                 {/* Left Side */}
                 {renderTab(0, 'dashboard', 'home', 'Home', state, navigation, primaryColor, inactiveColor)}
-                {renderTab(1, 'timetable', 'calendar', 'Attendance', state, navigation, primaryColor, inactiveColor)}
+                {renderTab(1, 'timetable', 'calendar', 'Timetable', state, navigation, primaryColor, inactiveColor)}
 
                 {/* Spacer for Center Button */}
                 <View style={styles.spacer} />
