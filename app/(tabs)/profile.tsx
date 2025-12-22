@@ -107,11 +107,7 @@ export default function ProfileScreen() {
                         <MaterialIcons name="chevron-right" size={24} color={colors.subtext} />
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={[styles.menuItem, { borderBottomColor: colors.surfaceHighlight }]}>
-                        <MaterialIcons name="history" size={24} color={colors.subtext} />
-                        <Text style={[styles.menuText, { color: colors.text }]}>History</Text>
-                        <MaterialIcons name="chevron-right" size={24} color={colors.subtext} />
-                    </TouchableOpacity>
+
 
                     <TouchableOpacity
                         style={[styles.menuItem, { borderBottomWidth: 0 }]}
