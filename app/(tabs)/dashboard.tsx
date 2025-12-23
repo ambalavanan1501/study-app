@@ -5,6 +5,9 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { fetchClasses, getUserProfile, fetchSkills } from '../../lib/api';
 import { useTheme } from '../../lib/theme';
+import GlassCard from '../../components/GlassCard';
+import { LinearGradient } from 'expo-linear-gradient';
+import { scheduleClassReminder } from '../../lib/notifications';
 
 export default function DashboardScreen() {
     const router = useRouter();
@@ -102,6 +105,12 @@ export default function DashboardScreen() {
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+            {/* Ambient Background Gradient */}
+            <LinearGradient
+                colors={[theme === 'dark' ? colors.primary + '40' : colors.primary + '20', 'transparent']}
+                style={styles.backgroundGradient}
+            />
+
             <ScrollView
                 contentContainerStyle={styles.scrollContent}
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.text} />}
@@ -119,133 +128,151 @@ export default function DashboardScreen() {
                             )}
                         </TouchableOpacity>
                         <View style={styles.greetingContainer}>
-                            <Text style={[styles.greeting, { color: colors.subtext }]}>Good Morning,</Text>
+                            <Text style={[styles.greeting, { color: colors.subtext }]}>WELCOME BACK</Text>
                             <Text style={[styles.username, { color: colors.text }]} numberOfLines={1}>{profile?.full_name || 'Student'}</Text>
                         </View>
                     </View>
-                    <TouchableOpacity style={[styles.notificationBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                    <TouchableOpacity
+                        style={styles.notificationBtn}
+                        onPress={async () => {
+                            await scheduleClassReminder("Test Notification", "This is a test reminder from your Study App!", 2);
+                            alert("Scheduled test notification for 2 seconds from now!");
+                        }}
+                    >
                         <MaterialIcons name="notifications-none" size={26} color={colors.text} />
                     </TouchableOpacity>
                 </View>
 
-                {/* Date & Time Widget */}
-                <View style={styles.timeWidget}>
+                {/* Hero Time Widget - Minimalist */}
+                <View style={styles.timeContainer}>
                     <Text style={[styles.bigTime, { color: colors.text }]}>{formattedTime}</Text>
                     <Text style={[styles.dateLabel, { color: colors.subtext }]}>{formattedDate}</Text>
                 </View>
 
-                {/* Stats Cards: CGPA & Credits */}
-                <View style={styles.statsContainer}>
-                    <View style={[styles.statCard, { backgroundColor: colors.danger }]}>
-                        <View style={styles.statIcon}>
-                            <FontAwesome5 name="chart-line" size={20} color={colors.background} />
+                {/* Next Class / Active Class */}
+                <View style={styles.nextClassContainer}>
+                    <Text style={[styles.sectionTitle, { color: colors.subtext }]}>Current Priority</Text>
+                    {todaysSchedule.length > 0 ? (
+                        <TouchableOpacity onPress={() => router.push('/(tabs)/timetable')}>
+                            <GlassCard style={styles.glassCard} intensity={40}>
+                                <View style={styles.nextClassContent}>
+                                    <View style={styles.nextClassTime}>
+                                        <Text style={[styles.nextClassTimeText, { color: colors.primary }]}>
+                                            {todaysSchedule[0].start_time?.slice(0, 5)}
+                                        </Text>
+                                        <Text style={[styles.nextClassTimeLabel, { color: colors.text }]}>
+                                            {todaysSchedule[0].status === 'active' ? 'NOW' : 'NEXT'}
+                                        </Text>
+                                    </View>
+                                    <View style={styles.nextClassInfo}>
+                                        <Text style={[styles.nextClassName, { color: colors.text }]}>{todaysSchedule[0].subject_name}</Text>
+                                        <Text style={[styles.nextClassDetail, { color: colors.subtext }]}>
+                                            {todaysSchedule[0].room} • {todaysSchedule[0].type}
+                                        </Text>
+                                        {/* Progress Bar Simulation */}
+                                        <View style={styles.nextClassProgressBar}>
+                                            <View style={[styles.nextClassProgressFill, { backgroundColor: colors.primary, width: '45%' }]} />
+                                        </View>
+                                    </View>
+                                </View>
+                            </GlassCard>
+                        </TouchableOpacity>
+                    ) : (
+                        <View style={styles.noClassContainer}>
+                            <Text style={{ color: colors.subtext }}>No classes today. Time to upskill.</Text>
                         </View>
-                        <View>
-                            <Text style={[styles.statNumber, { color: colors.background }]}>{profile?.gpa || '0.00'}</Text>
-                            <Text style={[styles.statLabel, { color: colors.background }]}>CGPA</Text>
-                        </View>
-                    </View>
-                    <View style={[styles.statCard, { backgroundColor: colors.success }]}>
-                        <View style={styles.statIcon}>
-                            <FontAwesome5 name="medal" size={20} color={colors.background} />
-                        </View>
-                        <View>
-                            <Text style={[styles.statNumber, { color: colors.background }]}>{profile?.credits_earned || '0'}</Text>
-                            <Text style={[styles.statLabel, { color: colors.background }]}>Credits</Text>
-                        </View>
-                    </View>
+                    )}
+                </View>
+
+                {/* Quick Stats Row - Glass Cards */}
+                <View style={styles.statsRow}>
+                    <GlassCard style={styles.statCard} intensity={30} tint={theme === 'dark' ? 'dark' : 'light'}>
+                        <MaterialIcons name="grade" size={24} color={colors.warning} />
+                        <Text style={[styles.statValue, { color: colors.text }]}>{profile?.gpa || '0.00'}</Text>
+                        <Text style={[styles.statLabel, { color: colors.subtext }]}>CGPA</Text>
+                    </GlassCard>
+                    <GlassCard style={styles.statCard} intensity={30} tint={theme === 'dark' ? 'dark' : 'light'}>
+                        <MaterialIcons name="check-circle" size={24} color={colors.success} />
+                        <Text style={[styles.statValue, { color: colors.text }]}>{profile?.credits_earned || '0'}</Text>
+                        <Text style={[styles.statLabel, { color: colors.subtext }]}>CREDITS</Text>
+                    </GlassCard>
                 </View>
 
                 {/* Today's Schedule Section */}
                 <View style={styles.section}>
-                    <Text style={[styles.sectionTitle, { color: colors.text }]}>Today's Schedule</Text>
+                    <View style={styles.sectionHeaderRow}>
+                        <Text style={[styles.sectionTitle, { color: colors.text }]}>Today's Schedule</Text>
+                        <TouchableOpacity onPress={() => router.push('/(tabs)/timetable')}>
+                            <Text style={{ color: colors.primary, fontWeight: '600' }}>See All</Text>
+                        </TouchableOpacity>
+                    </View>
 
                     {todaysSchedule.length > 0 ? (
                         todaysSchedule.map((item, index) => (
-                            <View
-                                key={index}
-                                style={[
-                                    styles.classCard,
-                                    { backgroundColor: colors.surface, borderColor: colors.border },
-                                    item.status === 'active' && [styles.activeClassCard, { borderColor: colors.success, backgroundColor: colors.surface }],
-                                    item.status === 'completed' && { opacity: 0.6 }
-                                ]}
-                            >
-                                <View style={[styles.classTimeBox, { backgroundColor: item.type === 'lab' ? colors.danger : colors.primary }]}>
-                                    <Text style={[styles.classTimeBoxText, { color: colors.background }]}>
-                                        {item.start_time?.slice(0, 5)}
-                                    </Text>
-                                    <Text style={[styles.classTimeBoxLabel, { color: colors.background }]}>
-                                        {item.status === 'active' ? 'NOW' : 'Start'}
-                                    </Text>
-                                </View>
-                                <View style={styles.classInfo}>
-                                    <Text style={[styles.className, { color: colors.text }]}>{item.subject_name}</Text>
-                                    <Text style={[styles.classDetail, { color: colors.subtext }]}>
-                                        {item.room} • {item.slot_label}
-                                    </Text>
-                                    <View style={styles.tagRow}>
-                                        <View style={[styles.typeTag, { backgroundColor: colors.surfaceHighlight }]}>
-                                            <Text style={[styles.typeTagText, { color: colors.text }]}>{item.type}</Text>
-                                        </View>
-                                        {item.status === 'active' && (
-                                            <View style={[styles.typeTag, { backgroundColor: colors.success, marginLeft: 8 }]}>
-                                                <Text style={[styles.typeTagText, { color: colors.background }]}>ONGOING</Text>
-                                            </View>
-                                        )}
+                            <TouchableOpacity key={index} onPress={() => router.push('/(tabs)/timetable')}>
+                                <GlassCard
+                                    style={[
+                                        styles.classCard,
+                                        item.status === 'active' && styles.activeClassCard,
+                                        item.status === 'completed' && { opacity: 0.6 }
+                                    ]}
+                                    intensity={20}
+                                >
+                                    <View style={[styles.classTimeBox, { backgroundColor: item.type === 'lab' ? colors.danger : colors.primary }]}>
+                                        <Text style={[styles.classTimeBoxText, { color: colors.background }]}>
+                                            {item.start_time?.slice(0, 5)}
+                                        </Text>
+                                        <Text style={[styles.classTimeBoxLabel, { color: colors.background }]}>
+                                            {item.status === 'active' ? 'NOW' : 'Start'}
+                                        </Text>
                                     </View>
-                                </View>
-                            </View>
+                                    <View style={styles.classInfo}>
+                                        <Text style={[styles.className, { color: colors.text }]}>{item.subject_name}</Text>
+                                        <Text style={[styles.classDetail, { color: colors.subtext }]}>
+                                            {item.room} • {item.slot_label}
+                                        </Text>
+                                        <View style={styles.tagRow}>
+                                            <View style={[styles.typeTag, { backgroundColor: colors.surfaceHighlight }]}>
+                                                <Text style={[styles.typeTagText, { color: colors.text }]}>{item.type}</Text>
+                                            </View>
+                                            {item.status === 'active' && (
+                                                <View style={[styles.typeTag, { backgroundColor: colors.success, marginLeft: 8 }]}>
+                                                    <Text style={[styles.typeTagText, { color: colors.background }]}>ONGOING</Text>
+                                                </View>
+                                            )}
+                                        </View>
+                                    </View>
+                                </GlassCard>
+                            </TouchableOpacity>
                         ))
                     ) : (
-                        <View style={[styles.emptyClassCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-                            <MaterialIcons name={isWeekend ? "beach-access" : "event-available"} size={40} color={colors.subtext} />
-                            <Text style={[styles.emptyClassText, { color: colors.text }]}>
-                                {isWeekend ? "Enjoy your Holiday!" : "No classes today"}
-                            </Text>
-                            <Text style={[styles.emptyClassSubText, { color: colors.subtext }]}>
-                                {isWeekend ? "Relax and recharge." : "Time to focus on tasks."}
-                            </Text>
+                        <View style={styles.noClassContainer}>
+                            <Text style={{ color: colors.subtext }}>No classes today.</Text>
                         </View>
                     )}
                 </View>
 
-                {/* My Skills Section */}
+                {/* Skills Section */}
                 <View style={styles.section}>
-                    <Text style={[styles.sectionTitle, { color: colors.text }]}>My Skills</Text>
-                    {skills.length > 0 ? (
-                        skills.map((skill) => (
-                            <TouchableOpacity
-                                key={skill.id}
-                                style={[styles.skillWidget, { backgroundColor: colors.surface, borderColor: colors.border, marginBottom: 12 }]}
-                                onPress={() => router.push('/(tabs)/skills')}
-                            >
-                                <View style={styles.skillWidgetHeader}>
-                                    <Text style={[styles.skillWidgetTitle, { color: colors.text }]}>{skill.title}</Text>
-                                    <Text style={[styles.skillWidgetPercent, { color: skill.progress === 100 ? colors.success : colors.primary }]}>{skill.progress}%</Text>
+                    <Text style={[styles.sectionTitle, { color: colors.subtext }]}>Skill Progress</Text>
+                    {skills.map((skill) => (
+                        <GlassCard key={skill.id} style={styles.skillItem} intensity={25}>
+                            <View style={styles.skillInfo}>
+                                <Text style={[styles.skillTitle, { color: colors.text }]}>{skill.title}</Text>
+                                <View style={styles.skillBarBg}>
+                                    <View style={[styles.skillBarFill, { width: `${skill.progress}%`, backgroundColor: colors.secondary }]} />
                                 </View>
-                                <View style={[styles.skillWidgetBarBg, { backgroundColor: colors.surfaceHighlight }]}>
-                                    <View
-                                        style={[
-                                            styles.skillWidgetBarFill,
-                                            {
-                                                width: `${skill.progress}%`,
-                                                backgroundColor: skill.progress === 100 ? colors.success : colors.primary
-                                            }
-                                        ]}
-                                    />
-                                </View>
-                            </TouchableOpacity>
-                        ))
-                    ) : (
-                        <TouchableOpacity
-                            style={[styles.emptyClassCard, { padding: 20 }]}
-                            onPress={() => router.push('/(tabs)/skills')}
-                        >
-                            <Text style={{ color: colors.subtext }}>No skills yet. Tap to add!</Text>
+                            </View>
+                            <Text style={[styles.skillPercent, { color: colors.text }]}>{skill.progress}%</Text>
+                        </GlassCard>
+                    ))}
+                    {skills.length === 0 && (
+                        <TouchableOpacity onPress={() => router.push('/(tabs)/skills')}>
+                            <Text style={{ color: colors.primary, textAlign: 'center' }}>+ Add a Skill</Text>
                         </TouchableOpacity>
                     )}
                 </View>
+
             </ScrollView>
         </SafeAreaView>
     );
@@ -254,22 +281,31 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#11111B',
+        // Background color handled by inline style
+    },
+    // Adding a gradient background effect (simulated with View)
+    backgroundGradient: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        height: 400,
+        opacity: 0.3,
     },
     scrollContent: {
         padding: 20,
-        paddingBottom: 120, // Space for Custom Tab Bar
+        paddingBottom: 120,
     },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 25,
+        marginBottom: 30,
+        marginTop: 10,
     },
     headerLeft: {
         flexDirection: 'row',
         alignItems: 'center',
-        flex: 1,
     },
     avatarImage: {
         width: 50,
@@ -277,13 +313,11 @@ const styles = StyleSheet.create({
         borderRadius: 25,
         marginRight: 15,
         borderWidth: 2,
-        borderColor: '#CBA6F7',
     },
     avatarPlaceholder: {
         width: 50,
         height: 50,
         borderRadius: 25,
-        backgroundColor: '#CBA6F7',
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 15,
@@ -291,100 +325,66 @@ const styles = StyleSheet.create({
     avatarText: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#11111B',
-    },
-    greetingContainer: {
-        flex: 1,
     },
     greeting: {
         fontSize: 14,
-        color: '#A6ADC8',
+        letterSpacing: 0.5,
     },
     username: {
-        fontSize: 20,
+        fontSize: 22,
         fontWeight: 'bold',
-        color: '#CDD6F4',
     },
     notificationBtn: {
-        padding: 10,
-        backgroundColor: '#1E1E2E',
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#313244',
-    },
-    timeWidget: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 30,
-        paddingVertical: 10,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.1)',
+        backgroundColor: 'rgba(0,0,0,0.2)',
+    },
+
+    // Hero Time Section
+    timeContainer: {
+        alignItems: 'center',
+        marginBottom: 40,
+        paddingVertical: 20,
     },
     bigTime: {
-        fontSize: 48,
-        fontWeight: 'bold',
-        color: '#CDD6F4',
+        fontSize: 42,
+        fontWeight: '200', // Thin futuristic font weight
+        color: '#fff',
         includeFontPadding: false,
     },
     dateLabel: {
         fontSize: 16,
-        color: '#A6ADC8',
+        color: 'rgba(255,255,255,0.6)',
         marginTop: -5,
-        fontWeight: '500',
+        textTransform: 'uppercase',
+        letterSpacing: 2,
     },
-    statsContainer: {
-        flexDirection: 'row',
-        gap: 15,
-        marginBottom: 30,
-    },
-    statCard: {
-        flex: 1,
-        padding: 15,
-        borderRadius: 20,
-        flexDirection: 'row',
-        alignItems: 'center',
-        elevation: 3,
-    },
-    statIcon: {
-        width: 40,
-        height: 40,
-        borderRadius: 12,
-        backgroundColor: 'rgba(0,0,0,0.1)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 12,
-    },
-    statNumber: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#11111B',
-    },
-    statLabel: {
-        fontSize: 12,
-        color: '#11111B',
-        opacity: 0.8,
-        fontWeight: '600',
-    },
+
+
     section: {
         marginBottom: 25,
     },
-    sectionTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#CDD6F4',
-        marginBottom: 15,
+    sectionHeaderRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 10,
     },
     classCard: {
         flexDirection: 'row',
-        backgroundColor: '#1E1E2E',
         padding: 15,
         borderRadius: 20,
         alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#313244',
         marginBottom: 10,
     },
     activeClassCard: {
-        borderColor: '#A6E3A1',
-        borderWidth: 2,
-        backgroundColor: 'rgba(166, 227, 161, 0.05)',
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.3)',
     },
     classTimeBox: {
         paddingVertical: 10,
@@ -396,11 +396,9 @@ const styles = StyleSheet.create({
     classTimeBoxText: {
         fontSize: 16,
         fontWeight: 'bold',
-        color: '#11111B',
     },
     classTimeBoxLabel: {
         fontSize: 10,
-        color: '#11111B',
         fontWeight: 'bold',
         textTransform: 'uppercase',
     },
@@ -408,106 +406,149 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     className: {
-        fontSize: 18,
+        fontSize: 16,
         fontWeight: 'bold',
-        color: '#CDD6F4',
         marginBottom: 4,
     },
     classDetail: {
-        fontSize: 14,
-        color: '#A6ADC8',
-        marginBottom: 8,
+        fontSize: 12,
+        marginBottom: 6,
     },
     tagRow: {
         flexDirection: 'row',
     },
     typeTag: {
-        backgroundColor: '#313244',
         paddingHorizontal: 8,
         paddingVertical: 4,
         borderRadius: 6,
     },
     typeTagText: {
-        color: '#CDD6F4',
         fontSize: 10,
         fontWeight: 'bold',
         textTransform: 'uppercase',
     },
-    emptyClassCard: {
-        backgroundColor: '#1E1E2E',
-        padding: 30,
-        borderRadius: 20,
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#313244',
-        borderStyle: 'dashed',
+
+    // Next Class Glass Card
+    nextClassContainer: {
+        marginBottom: 25,
     },
-    emptyClassText: {
-        color: '#CDD6F4',
-        fontSize: 16,
-        fontWeight: 'bold',
-        marginTop: 10,
-    },
-    emptyClassSubText: {
-        color: '#A6ADC8',
+    sectionTitle: {
         fontSize: 14,
-        marginTop: 5,
+        fontWeight: '700',
+        textTransform: 'uppercase',
+        letterSpacing: 1.5,
+        marginBottom: 15,
+        opacity: 0.8,
     },
-    taskRow: {
+    glassCard: {
+        borderRadius: 24,
+    },
+    nextClassContent: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#1E1E2E',
-        padding: 15,
-        borderRadius: 15,
-        marginBottom: 10,
     },
-    taskIcon: {
+    nextClassTime: {
+        alignItems: 'center',
+        paddingRight: 15,
+        borderRightWidth: 1,
+        borderRightColor: 'rgba(255,255,255,0.1)',
         marginRight: 15,
     },
-    taskContent: {
+    nextClassTimeText: {
+        fontSize: 24,
+        fontWeight: 'bold',
+    },
+    nextClassTimeLabel: {
+        fontSize: 10,
+        textTransform: 'uppercase',
+        opacity: 0.7,
+        marginTop: 2,
+    },
+    nextClassInfo: {
         flex: 1,
     },
-    taskTitle: {
-        fontSize: 16,
-        color: '#CDD6F4',
-        marginBottom: 2,
+    nextClassName: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginBottom: 4,
     },
-    taskDue: {
-        fontSize: 12,
-        color: '#F38BA8',
+    nextClassDetail: {
+        fontSize: 14,
+        opacity: 0.7,
+        marginBottom: 8,
     },
-    skillWidget: {
-        backgroundColor: '#1E1E2E',
-        borderRadius: 20,
-        padding: 20,
-        borderWidth: 1,
-        borderColor: '#313244',
+    nextClassProgressBar: {
+        height: 4,
+        backgroundColor: 'rgba(255,255,255,0.1)',
+        borderRadius: 2,
+        width: '100%',
+        overflow: 'hidden',
     },
-    skillWidgetHeader: {
+    nextClassProgressFill: {
+        height: '100%',
+        borderRadius: 2,
+    },
+
+    // Quick Stats Row
+    statsRow: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
+        gap: 15,
+        marginBottom: 25,
+    },
+    statCard: {
+        flex: 1,
+        padding: 15,
         alignItems: 'center',
+        justifyContent: 'center',
+    },
+    statValue: {
+        fontSize: 28,
+        fontWeight: 'bold',
+        marginVertical: 5,
+    },
+    statLabel: {
+        fontSize: 10,
+        textTransform: 'uppercase',
+        letterSpacing: 1,
+        opacity: 0.7,
+    },
+
+    // Skills
+    skillItem: {
+        padding: 15,
         marginBottom: 10,
+        flexDirection: 'row',
+        alignItems: 'center',
     },
-    skillWidgetTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#CDD6F4',
+    skillInfo: {
+        flex: 1,
     },
-    skillWidgetPercent: {
+    skillTitle: {
         fontSize: 16,
-        fontWeight: 'bold',
-        color: '#89B4FA',
+        fontWeight: '600',
+        marginBottom: 6,
     },
-    skillWidgetBarBg: {
+    skillBarBg: {
         height: 6,
-        backgroundColor: '#313244',
+        backgroundColor: 'rgba(0,0,0,0.3)',
         borderRadius: 3,
         overflow: 'hidden',
     },
-    skillWidgetBarFill: {
+    skillBarFill: {
         height: '100%',
-        backgroundColor: '#89B4FA',
-        borderRadius: 3,
     },
+    skillPercent: {
+        marginLeft: 15,
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    noClassContainer: {
+        padding: 30,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: 24,
+        borderWidth: 1,
+        borderStyle: 'dashed',
+        borderColor: 'rgba(255,255,255,0.2)',
+    }
 });

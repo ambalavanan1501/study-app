@@ -107,6 +107,24 @@ export default function ProfileScreen() {
                         <MaterialIcons name="chevron-right" size={24} color={colors.subtext} />
                     </TouchableOpacity>
 
+                    <TouchableOpacity
+                        style={[styles.menuItem, { borderBottomColor: colors.surfaceHighlight }]}
+                        onPress={() => router.push('/security-settings')}
+                    >
+                        <MaterialIcons name="security" size={24} color={colors.subtext} />
+                        <Text style={[styles.menuText, { color: colors.text }]}>App Security</Text>
+                        <MaterialIcons name="chevron-right" size={24} color={colors.subtext} />
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={[styles.menuItem, { borderBottomColor: colors.surfaceHighlight }]}
+                        onPress={() => router.push('/cgpa-settings')}
+                    >
+                        <MaterialIcons name="graphic-eq" size={24} color={colors.subtext} />
+                        <Text style={[styles.menuText, { color: colors.text }]}>CGPA Settings</Text>
+                        <MaterialIcons name="chevron-right" size={24} color={colors.subtext} />
+                    </TouchableOpacity>
+
 
 
                     <TouchableOpacity

@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, Platform } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, Platform, NativeModules } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useEffect, useState, useCallback } from 'react';
@@ -6,6 +6,8 @@ import { fetchClasses } from '../../lib/api';
 import { startOfWeek, addDays, format, isSameDay } from 'date-fns';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useTheme } from '../../lib/theme';
+import GlassCard from '../../components/GlassCard';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const DAY_MAP: { [key: string]: string } = {
     'Mon': 'Monday',
@@ -70,8 +72,33 @@ export default function TimetableScreen() {
                 return a.startMin - b.startMin;
             });
             setClasses(processed);
+
+            // Update Widget
+            if (Platform.OS === 'android') {
+                try {
+                    const { TimetableWidgetModule } = NativeModules;
+                    if (TimetableWidgetModule) {
+                        const widgetData = processed && processed.length > 0
+                            ? processed.map((c: any) => `${c.subject_name} (${c.start_time}-${c.end_time})`).join('\n')
+                            : "No classes today";
+                        TimetableWidgetModule.setTimetableData(widgetData);
+                    }
+                } catch (e) {
+                    console.log("Widget update failed", e);
+                }
+            }
         } else {
             setClasses([]);
+            if (Platform.OS === 'android') {
+                try {
+                    const { TimetableWidgetModule } = NativeModules;
+                    if (TimetableWidgetModule) {
+                        TimetableWidgetModule.setTimetableData("No classes today");
+                    }
+                } catch (e) {
+                    // ignore
+                }
+            }
         }
 
     }, [selectedDate]);
@@ -90,6 +117,10 @@ export default function TimetableScreen() {
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+            <LinearGradient
+                colors={[theme === 'dark' ? colors.primary + '30' : colors.primary + '10', 'transparent']}
+                style={styles.backgroundGradient}
+            />
             <View style={styles.header}>
                 <Text style={[styles.title, { color: colors.text }]}>Timetable</Text>
                 <TouchableOpacity onPress={() => router.push('/add-course')}>
@@ -106,27 +137,30 @@ export default function TimetableScreen() {
                     return (
                         <TouchableOpacity
                             key={index}
-                            style={[
-                                styles.dayItem,
-                                isSelected && [styles.selectedDayItem, { backgroundColor: colors.primary }],
-                                isToday && !isSelected && [styles.todayItem, { borderColor: colors.primary }]
-                            ]}
                             onPress={() => setSelectedDate(date)}
                         >
-                            <Text style={[
-                                styles.dayName,
-                                { color: colors.subtext, fontSize: 16, fontWeight: 'bold', marginBottom: 0 },
-                                isSelected && { color: colors.background }
-                            ]}>
-                                {format(date, 'EEE')}
-                            </Text>
-                            {/* Date Number removed as per request */}
-
-                            {/* Dot for today */}
-                            {isToday && <View style={[
-                                styles.todayDot,
-                                { backgroundColor: isSelected ? colors.background : colors.primary }
-                            ]} />}
+                            <GlassCard
+                                style={[
+                                    styles.dayItem,
+                                    isSelected && { backgroundColor: colors.primary },
+                                    isToday && !isSelected && { borderColor: colors.primary, borderWidth: 1 }
+                                ]}
+                                intensity={isSelected ? 0 : 20}
+                                tint={theme === 'dark' ? 'dark' : 'light'}
+                            >
+                                <Text style={[
+                                    styles.dayName,
+                                    { color: colors.subtext, fontSize: 16, fontWeight: 'bold', marginBottom: 0 },
+                                    isSelected && { color: colors.background }
+                                ]}>
+                                    {format(date, 'EEE')}
+                                </Text>
+                                {/* Dot for today */}
+                                {isToday && <View style={[
+                                    styles.todayDot,
+                                    { backgroundColor: isSelected ? colors.background : colors.primary }
+                                ]} />}
+                            </GlassCard>
                         </TouchableOpacity>
                     );
                 })}
@@ -143,12 +177,14 @@ export default function TimetableScreen() {
                     </View>
                 }
                 renderItem={({ item }) => (
-                    <View style={[
-                        styles.card,
-                        { backgroundColor: colors.surface, borderColor: colors.border },
-                        item.status === 'active' && [styles.activeCard, { borderColor: colors.success, backgroundColor: colors.surface }],
-                        item.status === 'completed' && { opacity: 0.6 }
-                    ]}>
+                    <GlassCard
+                        style={[
+                            styles.card,
+                            item.status === 'active' && styles.activeCard,
+                            item.status === 'completed' && { opacity: 0.6 }
+                        ]}
+                        intensity={25}
+                    >
                         <View style={[styles.timeStrip, { backgroundColor: item.type === 'lab' ? colors.danger : colors.primary }]} />
 
                         <View style={styles.cardContent}>
@@ -174,7 +210,7 @@ export default function TimetableScreen() {
                                 </View>
                             )}
                         </View>
-                    </View>
+                    </GlassCard>
                 )}
             />
         </SafeAreaView>
@@ -184,6 +220,14 @@ export default function TimetableScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+    },
+    backgroundGradient: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        height: 400,
+        opacity: 0.3,
     },
     header: {
         flexDirection: 'row',
@@ -239,11 +283,10 @@ const styles = StyleSheet.create({
         borderRadius: 15,
         marginBottom: 15,
         overflow: 'hidden',
-        borderWidth: 1,
-        // dynamic bg and border
     },
     activeCard: {
-        borderWidth: 2,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.3)',
     },
     timeStrip: {
         width: 6,

@@ -2,6 +2,15 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useColorScheme } from 'react-native';
 
+export const ACCENT_COLORS = {
+    cyberBlue: '#00F0FF',
+    neonPurple: '#BC13FE',
+    matrixGreen: '#00FF9D',
+    hotPink: '#FF0055',
+    electricOrange: '#FF9100',
+    defaultBlue: '#89B4FA'
+};
+
 // --- Color Palettes (Catppuccin inspired) ---
 export const Colors = {
     dark: {
@@ -41,62 +50,77 @@ type ThemeType = 'light' | 'dark';
 interface ThemeContextType {
     theme: ThemeType;
     colors: typeof Colors.dark;
+    accentColor: string;
     toggleTheme: () => void;
     setTheme: (theme: ThemeType) => void;
+    setAccentColor: (color: string) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const systemScheme = useColorScheme();
-    const [theme, setThemeState] = useState<ThemeType>('dark'); // Default to dark
+    const [theme, setThemeState] = useState<ThemeType>('dark');
+    const [accentColor, setAccentColorState] = useState<string>(ACCENT_COLORS.defaultBlue);
 
     useEffect(() => {
-        // Load saved theme or fall back to system
-        const loadTheme = async () => {
+        const loadSettings = async () => {
             try {
                 const savedTheme = await AsyncStorage.getItem('user-theme');
+                const savedAccent = await AsyncStorage.getItem('user-accent');
+
                 if (savedTheme === 'light' || savedTheme === 'dark') {
                     setThemeState(savedTheme);
                 } else if (systemScheme) {
                     setThemeState(systemScheme);
                 }
+
+                if (savedAccent) {
+                    setAccentColorState(savedAccent);
+                }
             } catch (error) {
-                console.error('Failed to load theme', error);
+                console.error('Failed to load theme/accent', error);
             }
         };
-        loadTheme();
+        loadSettings();
     }, []);
 
     const toggleTheme = async () => {
         const newTheme = theme === 'light' ? 'dark' : 'light';
         setThemeState(newTheme);
-        try {
-            await AsyncStorage.setItem('user-theme', newTheme);
-        } catch (error) {
-            console.error('Failed to save theme', error);
-        }
+        await AsyncStorage.setItem('user-theme', newTheme);
     };
 
     const setTheme = async (newTheme: ThemeType) => {
         setThemeState(newTheme);
-        try {
-            await AsyncStorage.setItem('user-theme', newTheme);
-        } catch (error) {
-            console.error('Failed to save theme', error);
-        }
+        await AsyncStorage.setItem('user-theme', newTheme);
     }
+
+    const setAccentColor = async (color: string) => {
+        setAccentColorState(color);
+        await AsyncStorage.setItem('user-accent', color);
+    };
+
+    // Override the primary/secondary colors with the selected accent
+    const activeColors = {
+        ...Colors[theme],
+        primary: accentColor,
+        secondary: accentColor, // For now, make secondary same or derived? Let's keep distinct or just override primary. 
+        // Actually for a neon theme, let's making 'primary' the glow color.
+    };
 
     const value = {
         theme,
-        colors: Colors[theme],
+        colors: activeColors,
+        accentColor,
         toggleTheme,
-        setTheme
+        setTheme,
+        setAccentColor
     };
 
     return (
-        <ThemeContext.Provider value= { value } >
-        { children }
+        <ThemeContext.Provider value={value}>
+            {children}
         </ThemeContext.Provider>
     );
 };

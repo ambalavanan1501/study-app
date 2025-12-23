@@ -3,10 +3,13 @@ import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { MaterialIcons, FontAwesome5, Ionicons, Feather } from '@expo/vector-icons';
 import { useTheme } from '../lib/theme';
 import { useRouter } from 'expo-router';
+import { useState } from 'react';
+import AddMenu from './AddMenu';
 
 export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
     const { colors, theme } = useTheme();
     const router = useRouter();
+    const [showMenu, setShowMenu] = useState(false);
 
     // Mapping routes to icons and labels
     // We expect: index, timetable, skills, profile
@@ -40,13 +43,15 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
             {/* Floating Center Button */}
             <TouchableOpacity
                 style={[styles.centerButton, { backgroundColor: colors.background, borderColor: colors.surface }]}
-                onPress={() => router.push('/add-course')} // Default action: Add Course
+                onPress={() => setShowMenu(true)}
                 activeOpacity={0.8}
             >
                 <View style={[styles.centerButtonInner, { backgroundColor: colors.primary }]}>
-                    <MaterialIcons name="add" size={32} color="#FFFFFF" />
+                    <MaterialIcons name={showMenu ? "close" : "menu"} size={32} color="#FFFFFF" />
                 </View>
             </TouchableOpacity>
+
+            <AddMenu visible={showMenu} onClose={() => setShowMenu(false)} />
         </View>
     );
 }
