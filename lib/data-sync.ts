@@ -118,22 +118,21 @@ export function updateWidget(classes: any[]) {
     if (Platform.OS !== 'android') return;
 
     try {
-        try {
-            const scheduleList = classes.map((c: any) => ({
-                subject: c.subject_name,
-                startTime: c.start_time ? c.start_time.slice(0, 5) : "",
-                endTime: c.end_time ? c.end_time.slice(0, 5) : "",
-                room: c.room || "",
-                dayOfWeek: c.day // Ensure this is "Monday", "Tuesday", etc.
-            }));
+        const scheduleList = classes.map((c: any) => ({
+            subject: c.subject_name,
+            startTime: c.start_time ? c.start_time.slice(0, 5) : "",
+            endTime: c.end_time ? c.end_time.slice(0, 5) : "",
+            room: c.room || "",
+            dayOfWeek: c.day // Ensure this is "Monday", "Tuesday", etc.
+        }));
 
-            const { TimetableWidgetModule } = NativeModules;
-            if (TimetableWidgetModule) {
-                TimetableWidgetModule.setTimetableData(JSON.stringify(scheduleList));
-            } else {
-                console.warn('[Widget] TimetableWidgetModule not found');
-            }
-        } catch (e) {
-            console.error("[Widget] Update failed", e);
+        const { TimetableWidgetModule } = NativeModules;
+        if (TimetableWidgetModule) {
+            TimetableWidgetModule.setTimetableData(JSON.stringify(scheduleList));
+        } else {
+            console.warn('[Widget] TimetableWidgetModule not found');
         }
+    } catch (e) {
+        console.error("[Widget] Update failed", e);
     }
+}

@@ -24,7 +24,9 @@
       "edgeToEdgeEnabled": true,
       "package": "com.vstudyhub.studyapp",
       "permissions": [
-        "android.permission.RECORD_AUDIO"
+        "android.permission.RECORD_AUDIO",
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT"
       ]
     },
     "plugins": [
@@ -47,9 +49,8 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "48b5a6d5-f038-47f9-b4d6-dc898f704d60"
+        "projectId": "cbb285d0-7d9f-4617-b86f-6e1390b1bb4c"
       }
-    },
-    "owner": "nikeshshivan12"
+    }
   }
 }

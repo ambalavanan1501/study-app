@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, Platform, NativeModules } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, Platform, NativeModules, Alert } from 'react-native';
 import { syncWeekReminders } from '../../lib/notifications';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -46,6 +46,11 @@ export default function TimetableScreen() {
             console.error("Widget update failed", e);
         }
     }, []);
+
+    const handleManualSync = async () => {
+        await updateFullWeekWidget();
+        Alert.alert('Synced', 'Widget data has been refreshed.');
+    };
 
     const loadClasses = useCallback(async () => {
         const dayStr = format(selectedDate, 'EEE');
@@ -116,9 +121,14 @@ export default function TimetableScreen() {
             />
             <View style={styles.header}>
                 <Text style={[styles.title, { color: colors.text }]}>Timetable</Text>
-                <TouchableOpacity onPress={() => router.push('/add-course')}>
-                    <MaterialIcons name="add" size={28} color={colors.primary} />
-                </TouchableOpacity>
+                <View style={{ flexDirection: 'row', gap: 15 }}>
+                    <TouchableOpacity onPress={handleManualSync}>
+                        <MaterialIcons name="sync" size={28} color={colors.primary} />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => router.push('/add-course')}>
+                        <MaterialIcons name="add" size={28} color={colors.primary} />
+                    </TouchableOpacity>
+                </View>
             </View>
 
             {/* Week Calendar Strip */}
