@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
-import androidx.glance.material3.GlanceTheme
+import androidx.glance.unit.ColorProvider
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.lazy.LazyColumn
 import androidx.glance.appwidget.lazy.items
@@ -46,9 +46,7 @@ class WeekWidget : GlanceAppWidget() {
         }
 
         provideContent {
-            GlanceTheme {
                 WeekContent(displayItems)
-            }
         }
     }
 
@@ -57,7 +55,7 @@ class WeekWidget : GlanceAppWidget() {
         Column(
             modifier = GlanceModifier
                 .fillMaxSize()
-                .background(GlanceTheme.colors.surface)
+                .background(ColorProvider(androidx.compose.ui.graphics.Color.White))
                 .padding(16.dp)
         ) {
             Text(
@@ -65,7 +63,7 @@ class WeekWidget : GlanceAppWidget() {
                 style = TextStyle(
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = GlanceTheme.colors.onSurface
+                    color = ColorProvider(androidx.compose.ui.graphics.Color.Black)
                 ),
                 modifier = GlanceModifier.padding(bottom = 8.dp)
             )
@@ -89,7 +87,7 @@ class WeekWidget : GlanceAppWidget() {
             style = TextStyle(
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
-                color = GlanceTheme.colors.primary
+                color = ColorProvider(androidx.compose.ui.graphics.Color.Blue)
             ),
             modifier = GlanceModifier.padding(vertical = 8.dp)
         )
@@ -100,14 +98,14 @@ class WeekWidget : GlanceAppWidget() {
         Row(
             modifier = GlanceModifier
                 .fillMaxWidth()
-                .background(GlanceTheme.colors.surfaceVariant)
+                .background(ColorProvider(androidx.compose.ui.graphics.Color(0xFFEEEEEE)))
                 .padding(8.dp)
         ) {
             Text(
                 text = "${schedule.startTime} - ${schedule.endTime}",
                 style = TextStyle(
                     fontSize = 12.sp,
-                    color = GlanceTheme.colors.onSurfaceVariant
+                    color = ColorProvider(androidx.compose.ui.graphics.Color.Gray)
                 ),
                 modifier = GlanceModifier.width(80.dp)
             )
@@ -117,14 +115,14 @@ class WeekWidget : GlanceAppWidget() {
                     style = TextStyle(
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
-                        color = GlanceTheme.colors.onSurfaceVariant
+                        color = ColorProvider(androidx.compose.ui.graphics.Color.Black)
                     )
                 )
                 Text(
                     text = schedule.room,
                     style = TextStyle(
                         fontSize = 12.sp,
-                        color = GlanceTheme.colors.onSurfaceVariant
+                        color = ColorProvider(androidx.compose.ui.graphics.Color.Gray)
                     )
                 )
             }

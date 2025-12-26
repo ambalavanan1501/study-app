@@ -118,27 +118,22 @@ export function updateWidget(classes: any[]) {
     if (Platform.OS !== 'android') return;
 
     try {
-        const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-        let fullWeekData = "";
+        try {
+            const scheduleList = classes.map((c: any) => ({
+                subject: c.subject_name,
+                startTime: c.start_time ? c.start_time.slice(0, 5) : "",
+                endTime: c.end_time ? c.end_time.slice(0, 5) : "",
+                room: c.room || "",
+                dayOfWeek: c.day // Ensure this is "Monday", "Tuesday", etc.
+            }));
 
-        for (const day of days) {
-            const dayClasses = classes.filter(c => c.day && c.day.toLowerCase() === day.toLowerCase());
-            if (dayClasses.length > 0) {
-                fullWeekData += `\n${day.slice(0, 3)}:\n`;
-                fullWeekData += dayClasses
-                    .map((c: any) => `• ${c.subject_name} (${c.start_time.slice(0, 5)})`)
-                    .join('\n');
-                fullWeekData += "\n";
+            const { TimetableWidgetModule } = NativeModules;
+            if (TimetableWidgetModule) {
+                TimetableWidgetModule.setTimetableData(JSON.stringify(scheduleList));
+            } else {
+                console.warn('[Widget] TimetableWidgetModule not found');
             }
+        } catch (e) {
+            console.error("[Widget] Update failed", e);
         }
-
-        const { TimetableWidgetModule } = NativeModules;
-        if (TimetableWidgetModule) {
-            TimetableWidgetModule.setTimetableData(fullWeekData.trim() || "No classes set for this week");
-        } else {
-            console.warn('[Widget] TimetableWidgetModule not found');
-        }
-    } catch (e) {
-        console.error("[Widget] Update failed", e);
     }
-}

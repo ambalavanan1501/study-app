@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
-import androidx.glance.material3.GlanceTheme
+import androidx.glance.unit.ColorProvider
 import androidx.glance.action.actionStartActivity
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
@@ -42,9 +42,7 @@ class ClassicWidget : GlanceAppWidget() {
         }
 
         provideContent {
-            GlanceTheme {
                 TimetableContent(scheduleList)
-            }
         }
     }
 
@@ -58,7 +56,7 @@ class ClassicWidget : GlanceAppWidget() {
         Column(
             modifier = GlanceModifier
                 .fillMaxSize()
-                .background(GlanceTheme.colors.surface)
+                .background(ColorProvider(androidx.compose.ui.graphics.Color.White))
                 .padding(16.dp)
         ) {
             // Header
@@ -67,7 +65,7 @@ class ClassicWidget : GlanceAppWidget() {
                 style = TextStyle(
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = GlanceTheme.colors.onSurface
+                    color = ColorProvider(androidx.compose.ui.graphics.Color.Black)
                 ),
                 modifier = GlanceModifier.padding(bottom = 8.dp)
             )
@@ -79,7 +77,7 @@ class ClassicWidget : GlanceAppWidget() {
                 ) {
                     Text(
                         text = "No classes today! \uD83C\uDF89",
-                        style = TextStyle(color = GlanceTheme.colors.onSurfaceVariant)
+                        style = TextStyle(color = ColorProvider(androidx.compose.ui.graphics.Color.Gray))
                     )
                 }
             } else {
@@ -97,8 +95,8 @@ class ClassicWidget : GlanceAppWidget() {
     fun ScheduleItem(schedule: ScheduleEntity) {
         val isCurrent = isCurrentClass(schedule.startTime, schedule.endTime)
         
-        val backgroundColor = if (isCurrent) GlanceTheme.colors.primaryContainer else GlanceTheme.colors.surfaceVariant
-        val contentColor = if (isCurrent) GlanceTheme.colors.onPrimaryContainer else GlanceTheme.colors.onSurfaceVariant
+        val backgroundColor = if (isCurrent) ColorProvider(androidx.compose.ui.graphics.Color(0xFFEADDFF)) else ColorProvider(androidx.compose.ui.graphics.Color(0xFFEEEEEE))
+        val contentColor = if (isCurrent) ColorProvider(androidx.compose.ui.graphics.Color.Black) else ColorProvider(androidx.compose.ui.graphics.Color.Black)
 
         Row(
             modifier = GlanceModifier

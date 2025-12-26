@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
-import androidx.glance.material3.GlanceTheme
+import androidx.glance.unit.ColorProvider
 import androidx.glance.action.actionStartActivity
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
@@ -21,7 +21,7 @@ import androidx.glance.layout.padding
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
-import androidx.compose.ui.graphics.Color
+
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.util.Calendar
@@ -40,9 +40,7 @@ class CompactWidget : GlanceAppWidget() {
         }
 
         provideContent {
-            GlanceTheme {
                 CompactContent(nextClass)
-            }
         }
     }
 
@@ -76,7 +74,7 @@ class CompactWidget : GlanceAppWidget() {
         Column(
             modifier = GlanceModifier
                 .fillMaxSize()
-                .background(GlanceTheme.colors.surface)
+                .background(ColorProvider(androidx.compose.ui.graphics.Color.White))
                 .padding(12.dp)
                 .clickable(actionStartActivity<MainActivity>()),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -88,12 +86,12 @@ class CompactWidget : GlanceAppWidget() {
                     style = TextStyle(
                         fontSize = 16.sp, 
                         fontWeight = FontWeight.Bold,
-                        color = GlanceTheme.colors.onSurface
+                        color = ColorProvider(androidx.compose.ui.graphics.Color.Black)
                     )
                 )
                 Text(
                     text = "Enjoy your free time \uD83C\uDF89",
-                    style = TextStyle(fontSize = 12.sp, color = GlanceTheme.colors.onSurfaceVariant)
+                    style = TextStyle(fontSize = 12.sp, color = ColorProvider(androidx.compose.ui.graphics.Color.Gray))
                 )
             } else {
                 Text(
@@ -101,7 +99,7 @@ class CompactWidget : GlanceAppWidget() {
                     style = TextStyle(
                         fontSize = 10.sp, 
                         fontWeight = FontWeight.Bold,
-                        color = GlanceTheme.colors.primary
+                        color = ColorProvider(androidx.compose.ui.graphics.Color.Blue)
                     )
                 )
                 Spacer(modifier = GlanceModifier.height(4.dp))
@@ -110,7 +108,7 @@ class CompactWidget : GlanceAppWidget() {
                     style = TextStyle(
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        color = GlanceTheme.colors.onSurface
+                        color = ColorProvider(androidx.compose.ui.graphics.Color.Black)
                     ),
                     maxLines = 1
                 )
@@ -118,7 +116,7 @@ class CompactWidget : GlanceAppWidget() {
                     text = "${schedule.startTime} - ${schedule.endTime}",
                     style = TextStyle(
                         fontSize = 14.sp,
-                        color = GlanceTheme.colors.onSurfaceVariant
+                        color = ColorProvider(androidx.compose.ui.graphics.Color.Gray)
                     )
                 )
                 Text(
@@ -126,7 +124,7 @@ class CompactWidget : GlanceAppWidget() {
                     style = TextStyle(
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
-                        color = GlanceTheme.colors.onSurface
+                        color = ColorProvider(androidx.compose.ui.graphics.Color.Black)
                     )
                 )
             }
