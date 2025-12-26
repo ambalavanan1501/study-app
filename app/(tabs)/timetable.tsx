@@ -1,8 +1,10 @@
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, Platform, NativeModules } from 'react-native';
+import { syncWeekReminders } from '../../lib/notifications';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useEffect, useState, useCallback } from 'react';
 import { fetchClasses } from '../../lib/api';
+import { updateWidget } from '../../lib/data-sync';
 import { startOfWeek, addDays, format, isSameDay } from 'date-fns';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useTheme } from '../../lib/theme';
@@ -34,6 +36,15 @@ export default function TimetableScreen() {
 
         // Ensure selectedDate is today visually
         setSelectedDate(new Date());
+    }, []);
+
+    const updateFullWeekWidget = useCallback(async () => {
+        try {
+            const allClasses = await fetchClasses();
+            updateWidget(allClasses);
+        } catch (e) {
+            console.error("Widget update failed", e);
+        }
     }, []);
 
     const loadClasses = useCallback(async () => {
@@ -73,35 +84,17 @@ export default function TimetableScreen() {
             });
             setClasses(processed);
 
-            // Update Widget
-            if (Platform.OS === 'android') {
-                try {
-                    const { TimetableWidgetModule } = NativeModules;
-                    if (TimetableWidgetModule) {
-                        const widgetData = processed && processed.length > 0
-                            ? processed.map((c: any) => `${c.subject_name} (${c.start_time}-${c.end_time})`).join('\n')
-                            : "No classes today";
-                        TimetableWidgetModule.setTimetableData(widgetData);
-                    }
-                } catch (e) {
-                    console.log("Widget update failed", e);
-                }
-            }
+            // Sync notifications for the FULL WEEK whenever data is loaded
+            const allClasses = await fetchClasses();
+            syncWeekReminders(allClasses);
         } else {
             setClasses([]);
-            if (Platform.OS === 'android') {
-                try {
-                    const { TimetableWidgetModule } = NativeModules;
-                    if (TimetableWidgetModule) {
-                        TimetableWidgetModule.setTimetableData("No classes today");
-                    }
-                } catch (e) {
-                    // ignore
-                }
-            }
         }
 
-    }, [selectedDate]);
+        // Trigger full week widget update
+        updateFullWeekWidget();
+
+    }, [selectedDate, updateFullWeekWidget]);
 
     useFocusEffect(
         useCallback(() => {

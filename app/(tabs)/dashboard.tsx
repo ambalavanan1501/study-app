@@ -7,7 +7,8 @@ import { fetchClasses, getUserProfile, fetchSkills } from '../../lib/api';
 import { useTheme } from '../../lib/theme';
 import GlassCard from '../../components/GlassCard';
 import { LinearGradient } from 'expo-linear-gradient';
-import { scheduleClassReminder } from '../../lib/notifications';
+import { scheduleClassReminder, syncWeekReminders } from '../../lib/notifications';
+import { updateWidget } from '../../lib/data-sync';
 
 export default function DashboardScreen() {
     const router = useRouter();
@@ -22,16 +23,22 @@ export default function DashboardScreen() {
         try {
             const todayName = new Date().toLocaleDateString('en-US', { weekday: 'long' });
 
-            const [userProfile, rawClasses, userSkills] = await Promise.all([
+            const [userProfile, allClasses, userSkills] = await Promise.all([
                 getUserProfile(),
-                fetchClasses(todayName),
+                fetchClasses(), // Fetch all classes for week sync
                 fetchSkills()
             ]);
 
             setProfile(userProfile);
             setSkills(userSkills || []);
 
-            // PROCESSSING SCHEDULE
+            // Sync notification reminders for the ENTIRE week
+            syncWeekReminders(allClasses);
+            updateWidget(allClasses);
+
+            // Filter for TODAY'S schedule UI
+            const rawClasses = allClasses.filter((c: any) => c.day === todayName);
+
             if (rawClasses && rawClasses.length > 0) {
                 const now = new Date();
                 const currentMinutes = now.getHours() * 60 + now.getMinutes();
@@ -325,6 +332,9 @@ const styles = StyleSheet.create({
     avatarText: {
         fontSize: 20,
         fontWeight: 'bold',
+    },
+    greetingContainer: {
+        flexDirection: 'column',
     },
     greeting: {
         fontSize: 14,

@@ -3,12 +3,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useColorScheme } from 'react-native';
 
 export const ACCENT_COLORS = {
-    cyberBlue: '#00F0FF',
-    neonPurple: '#BC13FE',
-    matrixGreen: '#00FF9D',
-    hotPink: '#FF0055',
-    electricOrange: '#FF9100',
-    defaultBlue: '#89B4FA'
+    pastelBlue: '#ACDDDE',
+    pastelMint: '#CAF1DE',
+    pastelGreen: '#E1F8DC',
+    creamYellow: '#FEF8DD',
+    pastelOrange: '#FFD8B1',
+    brightOrange: '#FFA500'
 };
 
 // --- Color Palettes (Catppuccin inspired) ---
@@ -61,7 +61,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const systemScheme = useColorScheme();
     const [theme, setThemeState] = useState<ThemeType>('dark');
-    const [accentColor, setAccentColorState] = useState<string>(ACCENT_COLORS.defaultBlue);
+    const [accentColor, setAccentColorState] = useState<string>(ACCENT_COLORS.creamYellow);
 
     useEffect(() => {
         const loadSettings = async () => {

@@ -2,11 +2,13 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { AppState, AppStateStatus } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 import * as LocalAuthentication from 'expo-local-authentication';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 
 // Keys for SecureStore
 const PIN_KEY = 'user_pin';
 const IS_BIOMETRICS_ENABLED_KEY = 'is_biometrics_enabled';
+const HAS_PIN_SETUP_KEY = 'has_pin_setup';
 
 interface AppLockContextType {
     isLocked: boolean;
@@ -45,11 +47,20 @@ export const AppLockProvider: React.FC<{ children: React.ReactNode }> = ({ child
             try {
                 const storedPin = await SecureStore.getItemAsync(PIN_KEY);
                 const storedBio = await SecureStore.getItemAsync(IS_BIOMETRICS_ENABLED_KEY);
+                const hasPinSetup = await AsyncStorage.getItem(HAS_PIN_SETUP_KEY);
 
-                if (storedPin) {
+                console.log('[AppLock] Loaded:', { hasStoredPin: !!storedPin, hasPinSetup: !!hasPinSetup });
+
+                if (storedPin || hasPinSetup === 'true') {
                     setHasPin(true);
                     // If there is a PIN, start locked
                     setIsLocked(true);
+
+                    // If we have setup flag but PIN is missing from SecureStore, 
+                    // this is the "re-setup" issue. We should warn or handle it.
+                    if (hasPinSetup === 'true' && !storedPin) {
+                        console.warn('[AppLock] Persistence issue: Flag is true but SecureStore is empty');
+                    }
                 } else {
                     setIsLocked(false);
                     setIsAuthenticated(true);
@@ -141,9 +152,8 @@ export const AppLockProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const setPin = useCallback(async (pin: string) => {
         try {
             await SecureStore.setItemAsync(PIN_KEY, pin);
+            await AsyncStorage.setItem(HAS_PIN_SETUP_KEY, 'true');
             setHasPin(true);
-            // If setting PIN for the first time, we consider them authenticated currently? 
-            // Or we might want them to confirm it. For now, simple set.
         } catch (e) {
             console.error(e);
         }

@@ -6,6 +6,8 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { getUserProfile } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../lib/theme';
+import { sendTestNotification } from '../../lib/notifications';
+import { exportTimetable, importTimetable } from '../../lib/data-sync';
 
 export default function ProfileScreen() {
     const router = useRouter();
@@ -125,7 +127,56 @@ export default function ProfileScreen() {
                         <MaterialIcons name="chevron-right" size={24} color={colors.subtext} />
                     </TouchableOpacity>
 
+                    <TouchableOpacity
+                        style={[styles.menuItem, { borderBottomColor: colors.surfaceHighlight }]}
+                        onPress={exportTimetable}
+                    >
+                        <MaterialIcons name="backup" size={24} color={colors.subtext} />
+                        <Text style={[styles.menuText, { color: colors.text }]}>Backup Timetable (Export)</Text>
+                        <MaterialIcons name="chevron-right" size={24} color={colors.subtext} />
+                    </TouchableOpacity>
 
+
+                    <View style={[styles.sectionHeader, { borderBottomColor: colors.surfaceHighlight }]}>
+                        <Text style={[styles.sectionTitle, { color: colors.primary }]}>Widget Settings</Text>
+                    </View>
+
+                    <TouchableOpacity
+                        style={[styles.menuItem, { borderBottomColor: colors.surfaceHighlight }]}
+                        onPress={async () => {
+                            try {
+                                const classes = await import('../../lib/api').then(m => m.fetchClasses());
+                                const { updateWidget } = await import('../../lib/data-sync');
+                                updateWidget(classes);
+                                Alert.alert('Sync Complete', 'Widget data has been refreshed.');
+                            } catch (e) {
+                                Alert.alert('Sync Failed', 'Could not sync data to widget.');
+                                console.error(e);
+                            }
+                        }}
+                    >
+                        <MaterialIcons name="sync" size={24} color={colors.subtext} />
+                        <Text style={[styles.menuText, { color: colors.text }]}>Force Sync to Widget</Text>
+                        <MaterialIcons name="chevron-right" size={24} color={colors.subtext} />
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={[styles.menuItem, { borderBottomColor: colors.surfaceHighlight }]}
+                        onPress={importTimetable}
+                    >
+                        <MaterialIcons name="restore" size={24} color={colors.subtext} />
+                        <Text style={[styles.menuText, { color: colors.text }]}>Restore / Widget Import</Text>
+                        <MaterialIcons name="chevron-right" size={24} color={colors.subtext} />
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={[styles.menuItem, { borderBottomColor: colors.surfaceHighlight }]}
+                        onPress={() => sendTestNotification('web- development', 'SJTG05', '8:00 AM')}
+                    >
+                        <MaterialIcons name="notification-important" size={24} color={colors.subtext} />
+                        <Text style={[styles.menuText, { color: colors.text }]}>Test Notification</Text>
+                        <MaterialIcons name="chevron-right" size={24} color={colors.subtext} />
+                    </TouchableOpacity>
 
                     <TouchableOpacity
                         style={[styles.menuItem, { borderBottomWidth: 0 }]}
@@ -274,5 +325,16 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#CDD6F4',
         fontWeight: '500',
+    },
+    sectionHeader: {
+        padding: 15,
+        paddingBottom: 5,
+        borderBottomWidth: 1,
+    },
+    sectionTitle: {
+        fontSize: 14,
+        fontWeight: 'bold',
+        textTransform: 'uppercase',
+        letterSpacing: 1,
     },
 });
