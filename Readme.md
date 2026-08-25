@@ -1,43 +1,38 @@
-# 📚 Study App
+# 📚 StudySync — Next-Gen Academic Management App
 
-A clean, intuitive mobile application designed to help students organize their academic life, track daily schedules, manage tasks, and monitor progress effortlessly.
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](#-ci-cd-pipeline)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter)](https://flutter.dev)
+[![Firebase](https://img.shields.io/badge/Backend-Firebase-FFCA28?logo=firebase)](https://firebase.google.com)
 
----
-
-## ✨ Features
-
-* **Interactive Timetable:** Create, view, and manage daily and weekly class schedules with room and instructor details.
-* **Smart Reminders:** Automated push notifications for upcoming lectures, assignment deadlines, and exam dates.
-* **User Profile:** Manage personal student details, enrolled courses, academic goals, and semester information.
-* **Assignment & Task Tracker:** Built-in to-do list with priority tagging, due dates, and completion status.
-* **Attendance Tracker:** Log attendance per subject to ensure minimum percentage requirements are met.
-* **Dark / Light Mode:** Fully adaptive UI tailored for day study sessions and late-night revisions.
+A feature-rich cross-platform mobile application designed to help students streamline academic workflows, track attendance thresholds, manage dynamic assignment pipelines, and maintain productivity.
 
 ---
 
-## 🛠 Tech Stack
+## 🎨 System Highlights
 
-* **Frontend:** Flutter / React Native *(or native Android/iOS)*
-* **Backend / Database:** Firebase / Node.js & Express
-* **State Management:** Provider / Riverpod / Redux
-* **Local Storage:** SQLite / Hive / SharedPreferences
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-Ensure you have the following installed on your local machine:
-* [Git](https://git-scm.com/)
-* [Flutter SDK](https://flutter.dev/docs/get-started/install) *(or [Node.js & React Native CLI](https://reactnative.dev/))*
-* Android Studio or Xcode (for emulators/simulators)
+* **Dynamic Timetable Engine:** Class schedules with room locator hints, instructor profiles, and recurring event handling.
+* **Attendance Analytics:** Real-time percentage calculations per course with threshold alerts (e.g., minimum 75% requirement warning).
+* **Task & Assignment Pipeline:** Priority tagging (Low, Medium, Critical), sub-tasks, markdown notes attachment, and due-date countdowns.
+* **Smart Contextual Notifications:** Local push notifications tuned to your local timezone for class alerts and upcoming deadlines.
+* **Progress Dashboard:** Visual representations of completed coursework, GPA tracking, and weekly study time analytics.
+* **Offline-First Storage:** Local cache persistence ensures full app functionality without an active internet connection.
 
 ---
 
-### Installation
+## 🏗️ Architecture & Tech Stack
 
-1. **Clone the repository:**
-   ```bash
-   git clone [https://github.com/nikesh-murugappan/study-app.git](https://github.com/nikesh-murugappan/study-app.git)
-   cd study-app
+```text
+       ┌────────────────────────────────────────────────────────┐
+       │                   Flutter Mobile UI                    │
+       └───────────────────────────┬────────────────────────────┘
+                                   │
+                      State Management (Riverpod)
+                                   │
+         ┌─────────────────────────┴─────────────────────────┐
+         ▼                                                   ▼
+┌──────────────────┐                               ┌──────────────────┐
+│ SQLite / Hive    │ ◄─── Offline Sync Engine ───► │ Firebase Cloud   │
+│ (Local Storage)  │                               │ Firestore / Auth │
+└──────────────────┘                               └──────────────────┘
